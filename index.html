@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Scam Shield – Job Listing Risk Scanner</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@500;700;800&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#f2f4f6;--surface:#fff;--ink:#14213d;--muted:#5b6678;--line:#d9dee5;--accent:#14213d;--onaccent:#fff;
+--low:#1f8a70;--mid:#c98a0a;--high:#c8352b;--lowbg:#dff3ec;--midbg:#fbefcf;--highbg:#f9dcd8;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+:root:not([data-theme="light"]){}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0e1522;--surface:#17202f;--ink:#e8edf5;--muted:#9aa6b8;--line:#2a3548;--accent:#e8edf5;--onaccent:#0e1522;--low:#4cc9a2;--mid:#f0b429;--high:#ff7a6e;--lowbg:#12382f;--midbg:#43340d;--highbg:#4a1d19}}
+:root[data-theme="dark"]{--bg:#0e1522;--surface:#17202f;--ink:#e8edf5;--muted:#9aa6b8;--line:#2a3548;--accent:#e8edf5;--onaccent:#0e1522;--low:#4cc9a2;--mid:#f0b429;--high:#ff7a6e;--lowbg:#12382f;--midbg:#43340d;--highbg:#4a1d19}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*,*::before,*::after{box-sizing:inherit}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 "IBM Plex Sans",system-ui,sans-serif}
+.wrap{max-width:860px;margin:0 auto;padding:24px 18px 64px}
+h1,h2,h3{font-family:"Bricolage Grotesque","IBM Plex Sans",sans-serif;line-height:1.1;margin:0}
+h1{font-size:clamp(2rem,6vw,3.2rem);font-weight:800;letter-spacing:-.02em}
+.lead{color:var(--muted);max-width:60ch;margin:12px 0 22px}
+.brand{font-family:"Bricolage Grotesque",sans-serif;font-weight:700;margin-bottom:18px}
+textarea{width:100%;min-height:170px;padding:14px;border:2px solid var(--line);border-radius:10px;background:var(--surface);color:var(--ink);font:inherit;resize:vertical}
+textarea:focus-visible,button:focus-visible{outline:3px solid var(--mid);outline-offset:2px}
+.row{display:flex;flex-wrap:wrap;gap:10px;margin-top:12px;align-items:center}
+button{font:inherit;font-weight:600;border-radius:8px;padding:11px 18px;cursor:pointer;border:2px solid var(--accent);background:var(--accent);color:var(--onaccent)}
+button.ghost{background:transparent;color:var(--ink);border-color:var(--line);font-weight:500;padding:8px 12px;font-size:.9rem}
+.hint{color:var(--muted);font-size:.9rem}
+#out{margin-top:34px}
+.verdict{border-radius:14px;padding:22px;border:2px solid var(--c);background:var(--cb)}
+.verdict h2{font-size:clamp(1.6rem,5vw,2.3rem);color:var(--c)}
+.meter{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;margin:16px 0 8px;position:relative}
+.meter i{height:10px;border-radius:5px;background:var(--line)}
+.meter i:nth-child(1){background:var(--low)}.meter i:nth-child(2){background:var(--mid)}.meter i:nth-child(3){background:#e06a1b}.meter i:nth-child(4){background:var(--high)}
+.pin{position:absolute;top:-5px;width:4px;height:20px;background:var(--ink);border-radius:2px;transform:translateX(-2px)}
+.scale{display:flex;justify-content:space-between;font-size:.8rem;color:var(--muted)}
+.verdict ul{margin:12px 0 0;padding-left:20px}
+section.blk{margin-top:28px}
+section.blk>h3{font-size:1.35rem;margin-bottom:10px}
+.msg{white-space:pre-wrap;word-break:break-word;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px;max-height:300px;overflow:auto;font-size:.95rem}
+mark{border-radius:3px;padding:0 2px;color:inherit}
+mark.r{background:var(--highbg);box-shadow:inset 0 -2px var(--high)}
+mark.w{background:var(--midbg);box-shadow:inset 0 -2px var(--mid)}
+.cat{background:var(--surface);border:1px solid var(--line);border-radius:10px;margin-bottom:10px;padding:14px 16px}
+.cat header{display:flex;justify-content:space-between;gap:10px;align-items:center}
+.cat h4{margin:0;font:700 1.05rem "Bricolage Grotesque",sans-serif}
+.tag{font-size:.8rem;font-weight:600;border-radius:99px;padding:2px 10px;white-space:nowrap}
+.tag.ok{background:var(--lowbg);color:var(--low)}.tag.w{background:var(--midbg);color:var(--mid)}.tag.r{background:var(--highbg);color:var(--high)}
+.find{margin-top:10px;padding-left:12px;border-left:4px solid var(--mid)}
+.find.r{border-color:var(--high)}
+.find b{display:block}
+.find span{color:var(--muted);font-size:.93rem}
+.find code{font-size:.85rem;background:var(--bg);padding:1px 5px;border-radius:4px;word-break:break-all}
+.none{color:var(--muted);font-size:.93rem;margin:8px 0 0}
+.steps{margin:0;padding-left:22px}.steps li{margin-bottom:6px}
+.good li{color:var(--low)}
+.note{font-size:.85rem;color:var(--muted);border-top:1px solid var(--line);margin-top:30px;padding-top:14px}
+details.tool{background:var(--surface);border:1px solid var(--line);border-radius:10px;margin-top:14px;padding:4px 16px}
+details.tool summary{cursor:pointer;font:700 1.1rem "Bricolage Grotesque",sans-serif;padding:12px 0}
+details.tool[open] summary{margin-bottom:6px}
+.tools-h{margin-top:46px;font-size:1.6rem}
+label.chk{display:flex;gap:10px;align-items:flex-start;margin:8px 0;cursor:pointer}
+label.chk input{margin-top:5px;width:18px;height:18px}
+input.txt{width:100%;padding:10px 12px;border:2px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink);font:inherit;margin:4px 0 10px}
+input.txt:focus-visible{outline:3px solid var(--mid);outline-offset:2px}
+.fl{font-size:.9rem;font-weight:600}
+.res{margin:14px 0 8px}
+a.lk{display:inline-block;margin:4px 12px 4px 0;color:var(--ink);font-weight:600}
+.urgent{background:var(--highbg);border-left:4px solid var(--high);padding:10px 12px;border-radius:6px;margin:10px 0}
+.chain code{font-size:.8rem}
+.chain{line-height:1.9;margin:8px 0}
+.mini{font-size:.9rem;margin:6px 0}
+.fld{display:inline-block;font-size:.8rem;border:1px solid var(--line);border-radius:6px;padding:1px 7px;margin:2px 4px 2px 0}
+.fld.s{border-color:var(--high);background:var(--highbg);color:var(--high);font-weight:600}
+.spin{color:var(--muted)}
+#chatbtn{position:fixed;right:16px;bottom:calc(16px + env(safe-area-inset-bottom,0px));z-index:20;border-radius:99px;padding:12px 20px;box-shadow:0 4px 16px rgba(0,0,0,.25)}
+#chat{position:fixed;right:16px;bottom:calc(16px + env(safe-area-inset-bottom,0px));z-index:30;width:min(380px,calc(100% - 32px));height:min(520px,calc(100% - 32px - env(safe-area-inset-top,0px)));display:none;flex-direction:column;background:var(--surface);border:2px solid var(--line);border-radius:14px;box-shadow:0 8px 28px rgba(0,0,0,.3);overflow:hidden}
+#chat.open{display:flex}
+#chat header{display:flex;justify-content:space-between;align-items:center;padding:12px 14px;border-bottom:1px solid var(--line);font:700 1rem "Bricolage Grotesque",sans-serif}
+#chat header button{padding:2px 10px;font-size:1.1rem}
+#msgs{flex:1;overflow:auto;padding:12px;display:flex;flex-direction:column;gap:8px}
+.m{max-width:88%;padding:9px 12px;border-radius:12px;white-space:pre-wrap;word-break:break-word;font-size:.95rem}
+.m.u{align-self:flex-end;background:var(--accent);color:var(--onaccent)}
+.m.b{align-self:flex-start;background:var(--bg);border:1px solid var(--line)}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chips button{font-weight:500;font-size:.85rem;padding:6px 10px}
+#chatform{display:flex;gap:8px;padding:10px;border-top:1px solid var(--line)}
+#chatform input{flex:1;padding:10px;border:2px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink);font:inherit;min-width:0}
+#chatform input:focus-visible{outline:3px solid var(--mid);outline-offset:2px}
+.top{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:18px}
+.top .brand{margin:0}
+#lang{font:inherit;padding:7px 10px;border:2px solid var(--line);border-radius:8px;background:var(--surface);color:var(--ink)}
+#lstat{font-size:.85rem;color:var(--muted);margin-left:8px}
+.nv a{margin-right:14px;font-weight:600;font-size:.9rem;color:var(--ink);text-decoration:none}.nv a:hover{text-decoration:underline}html{scroll-behavior:smooth}@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+footer.ft{margin-top:50px;border-top:1px solid var(--line);padding-top:16px;color:var(--muted);font-size:.85rem}
+.g2{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:10px}.g2 .cat{margin:0}.g2 p{margin:6px 0 0;font-size:.93rem;color:var(--muted)}
+</style>
+</head>
+<body>
+<div class="wrap">
+<div class="top"><div class="brand" data-notr>Scam Shield</div>
+<nav class="nv"><a href="#how">How it works</a><a href="#signs">Warning signs</a><a href="#tips">Safety tips</a><a href="#about">About</a></nav>
+<div><label class="fl" for="lang">Language</label> <select id="lang"><option value="en">English</option><option value="hi">हिन्दी</option><option value="hinglish">Hinglish</option><option value="mr">मराठी</option><option value="bn">বাংলা</option><option value="ta">தமிழ்</option><option value="te">తెలుగు</option><option value="gu">ગુજરાતી</option><option value="kn">ಕನ್ನಡ</option><option value="ml">മലയാളം</option><option value="pa">ਪੰਜਾਬੀ</option></select><span id="lstat" aria-live="polite"></span></div></div>
+<h1>Check Before You Apply.</h1>
+<p class="lead">Scan job listings for scam signals, suspicious links, and company inconsistencies before you share your information. Scam Shield turns a job listing into a risk report in seconds.</p>
+
+<textarea id="in" aria-label="Opportunity text or link" placeholder="Paste the full message, job post, email or link here…"></textarea>
+<div class="row"><label class="fl" for="img">Or upload a poster or screenshot:</label><input type="file" id="img" accept="image/*"><span class="hint" id="imgnote"></span></div>
+<div class="row">
+<button id="go">Scan Listing</button>
+<button id="deepgo">Deep scan with AI</button>
+<button class="ghost" id="s1">Demo: Obvious Scam</button>
+<button class="ghost" id="s3">Demo: Subtle Scam</button>
+<button class="ghost" id="s2">Demo: Likely Genuine</button>
+</div>
+<p class="hint">Quick check runs in your browser. Deep scan sends your text to our server, which opens every link in it, follows redirects, reads forms and asks Claude to explain what it found. Paste the post text (LinkedIn, Instagram and WhatsApp pages need a login, so we cannot open them for you). <br>Your text is analysed in your browser. Only the domain name is sent if you submit a report.</p>
+
+<p class="hint" id="demo" aria-live="polite"></p>
+<div id="deep" aria-live="polite"></div>
+<div id="out" aria-live="polite"></div>
+<h2 class="tools-h">More tools</h2>
+<details class="tool" id="paid"><summary>I already paid or shared details</summary>
+<p class="hint">Tick everything that happened. You'll get steps in the order that matters most.</p>
+<label class="chk"><input type="checkbox" id="p1"><span>I sent money (UPI, bank transfer, card, gift card, crypto)</span></label>
+<label class="chk"><input type="checkbox" id="p2"><span>I shared an OTP, card details or bank login</span></label>
+<label class="chk"><input type="checkbox" id="p3"><span>I shared Aadhaar, PAN, passport or a selfie with ID</span></label>
+<label class="chk"><input type="checkbox" id="p4"><span>I clicked a link and entered a password or form details</span></label>
+<label class="chk"><input type="checkbox" id="p5"><span>I installed an app or shared my screen</span></label>
+<div class="row"><button id="paidgo">Show my steps</button></div>
+<div id="paidout"></div></details>
+<details class="tool" id="verify"><summary>Verify the company</summary>
+<p class="hint">Fill in what the offer claims. We compare it and give you quick links to check independently.</p>
+<label class="fl" for="vcName">Company name in the offer</label><input class="txt" id="vcName" placeholder="e.g. Infosys">
+<label class="fl" for="vcSite">Website or link they gave you</label><input class="txt" id="vcSite" placeholder="e.g. infosys-careers.xyz">
+<label class="fl" for="vcMail">Recruiter email or domain</label><input class="txt" id="vcMail" placeholder="e.g. hr@gmail.com">
+<div class="row"><button id="vcgo">Check company</button></div>
+<div id="vcout"></div></details>
+
+<section class="blk" id="how"><h3>How it works</h3>
+<ol class="steps"><li><b>Paste.</b> Paste a job listing or URL.</li><li><b>Verify.</b> Scam Shield cross-checks information using live search and verification signals.</li><li><b>Analyze.</b> Risk indicators are evaluated.</li><li><b>Protect.</b> Receive a risk score, red flags, and safety recommendations.</li></ol></section>
+<section class="blk" id="signs"><h3>Scam warning signs</h3><div class="g2">
+<div class="cat"><h4>Upfront fees</h4><p>Registration, training or kit charges before you start work.</p></div>
+<div class="cat"><h4>Unrealistic salary</h4><p>Very high pay for simple work or no experience.</p></div>
+<div class="cat"><h4>Urgency</h4><p>"Apply today" or "limited seats" pressure to skip checks.</p></div>
+<div class="cat"><h4>Suspicious URLs</h4><p>Shortened links and brand-new domains that copy a real company.</p></div>
+<div class="cat"><h4>Fake recruiter identity</h4><p>Free email addresses, chat-only contact, no verifiable profile.</p></div>
+<div class="cat"><h4>Sensitive information requests</h4><p>Aadhaar, PAN, bank details or OTPs asked for before an offer.</p></div></div></section>
+<section class="blk" id="tips"><h3>Safety tips</h3><ul class="steps"><li>Never pay to get a job, training or equipment.</li><li>Find the role on the company's own careers page.</li><li>Check that recruiter emails come from the company's domain.</li><li>Keep ID documents and bank details until you have a verified offer letter.</li><li>Search the company name plus "scam" and read recent reports.</li></ul></section>
+<section class="blk" id="about"><h3>About</h3><p class="hint">Scam Shield is a first-pass job listing risk scanner that uses real-time search data and rule-based verification to help users identify potential scam signals before applying.</p></section>
+<footer class="ft">Scam Shield gives a risk assessment, not proof. Always verify independently. Demo results are synthetic examples.</footer>
+
+</div>
+
+<button id="chatbtn" aria-label="Open chat">Ask a question</button>
+<div id="chat" role="dialog" aria-label="Scam safety chat">
+<header><span>Ask Scam Shield</span><button class="ghost" id="chatx" aria-label="Close chat">×</button></header>
+<div id="msgs"></div>
+<form id="chatform"><input id="chatin" placeholder="Ask about this offer or scams…" maxlength="500" autocomplete="off"><button type="submit" id="chatsend">Send</button></form>
+</div>
+<script>
+/* ---- Supabase config: paste your values from Project Settings > API ---- */
+const SB_URL='YOUR_SUPABASE_URL';
+const SB_KEY='YOUR_SUPABASE_ANON_KEY';
+const SB_ON=!SB_URL.startsWith('YOUR_');
+let REMOTE={};
+const sbHead={apikey:SB_KEY,Authorization:'Bearer '+SB_KEY,'Content-Type':'application/json'};
+async function loadRemote(text){
+  REMOTE={};if(!SB_ON)return;
+  const ds=[...new Set(parse(text).urls.map(u=>u.root))].filter(d=>/^[a-z0-9.-]+$/.test(d));
+  if(!ds.length)return;
+  try{
+    const r=await fetch(SB_URL+'/rest/v1/report_counts?select=*&domain=in.('+ds.map(encodeURIComponent).join(',')+')',{headers:sbHead});
+    if(r.ok)for(const x of await r.json())REMOTE[x.domain]={scam:x.scam,ok:x.ok};
+  }catch(e){}
+}
+async function sendReport(domain,kind){
+  if(!SB_ON){const r=store();r[domain]=r[domain]||{scam:0,ok:0};r[domain][kind]++;save(r);return true}
+  try{const r=await fetch(SB_URL+'/rest/v1/reports',{method:'POST',headers:{...sbHead,Prefer:'return=minimal'},body:JSON.stringify({domain,kind})});return r.ok}catch(e){return false}
+}
+async function run(text){await loadRemote(text);render(text)}
+const FREE=['gmail.com','yahoo.com','yahoo.in','outlook.com','hotmail.com','rediffmail.com','proton.me','protonmail.com'];
+const SHORT=['bit.ly','tinyurl.com','t.co','cutt.ly','rb.gy','is.gd','shorturl.at','goo.gl','ow.ly','tiny.cc'];
+const BADTLD=['xyz','top','click','work','site','online','shop','icu','buzz','live','vip','cfd','sbs','rest','monster','cyou'];
+const FREEHOST=['forms.gle','wixsite.com','blogspot.com','weebly.com','github.io','netlify.app','vercel.app','typeform.com','000webhostapp.com','sites.google.com'];
+const KNOWNTLD=['com','in','org','net','co','io','info','biz','app','me','ly','gl','to','link','page','dev','ai','edu','gov','us','uk',...BADTLD];
+const SLD=['co.in','co.uk','com.au','org.in','ac.in','net.in','gov.in','edu.in'];
+const BRANDS={linkedin:['linkedin.com'],google:['google.com'],amazon:['amazon.com','amazon.in','amazon.jobs'],microsoft:['microsoft.com'],tcs:['tcs.com'],infosys:['infosys.com'],wipro:['wipro.com'],naukri:['naukri.com'],indeed:['indeed.com'],internshala:['internshala.com'],accenture:['accenture.com'],deloitte:['deloitte.com'],cognizant:['cognizant.com'],flipkart:['flipkart.com'],unstop:['unstop.com']};
+const GENUINE=[].concat(...Object.values(BRANDS));
+
+const esc=s=>s.replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const rootOf=h=>{const p=h.split('.');const l2=p.slice(-2).join('.');return SLD.includes(l2)?p.slice(-3).join('.'):l2};
+
+function parse(text){
+  const emailRe=/[\w.+-]+@([\w-]+(?:\.[\w-]+)+)/g;
+  const emails=[...text.matchAll(emailRe)].map(m=>m[1].toLowerCase());
+  const bare=text.replace(emailRe,' ');
+  const urls=[];
+  for(const m of bare.matchAll(/\b(?:https?:\/\/)?(?:www\.)?(?:[a-z0-9-]+\.)+[a-z]{2,}(?::\d+)?(?:\/[^\s<>"')]*)?/gi)){
+    const raw=m[0].replace(/[.,;!?]+$/,'');
+    const host=raw.replace(/^https?:\/\//i,'').split(/[\/?#:]/)[0].toLowerCase().replace(/^www\./,'');
+    const tld=host.split('.').pop();
+    const strong=/^https?:\/\//i.test(raw)||/^www\./i.test(raw)||/\//.test(raw);
+    if(!(strong||KNOWNTLD.includes(tld)))continue;
+    urls.push({raw,host,root:rootOf(host),http:/^http:\/\//i.test(raw),path:raw.replace(/^https?:\/\//i,'').slice(host.length)});
+  }
+  const ipLike=/^\d+(\.\d+){3}$/;
+  return{text,urls:urls.filter(u=>ipLike.test(u.host)||!/^\d/.test(u.host)||true),emails};
+}
+const rx=(re)=>c=>{const m=c.text.match(new RegExp(re.source,re.flags.includes('g')?re.flags:re.flags+'g'));return m?[...new Set(m.map(s=>s.trim()))]:[]};
+
+const RULES=[
+// URL & domain
+{cat:'url',w:15,sev:'w',title:'Shortened link hides the real destination',why:'Short links make it impossible to see where you will land. Scammers use them to hide fake sites.',tip:'Never open shortened links from unknown senders. Ask for the company\'s official careers page instead.',find:c=>c.urls.filter(u=>SHORT.includes(u.host)).map(u=>u.raw)},
+{cat:'url',w:25,sev:'r',title:'Link uses a raw IP address instead of a name',why:'Real companies use their own domain name. A numeric address is a strong sign of a throwaway or malicious site.',tip:'Do not open this link.',find:c=>c.urls.filter(u=>/^\d+(\.\d+){3}$/.test(u.host)).map(u=>u.raw)},
+{cat:'url',w:20,sev:'r',title:'Domain uses disguised characters (punycode)',why:'Domains starting with "xn--" can imitate real brands using look-alike letters.',tip:'Do not enter any details on this site.',find:c=>c.urls.filter(u=>u.host.includes('xn--')).map(u=>u.raw)},
+{cat:'url',w:8,sev:'w',title:'Link is not secure (http, not https)',why:'Real hiring portals use https. Anything you type on a plain http page can be read by others.',tip:'Avoid entering personal data on pages without https.',find:c=>c.urls.filter(u=>u.http).map(u=>u.raw)},
+{cat:'url',w:8,sev:'w',title:'Domain name is unusually long or hyphen-heavy',why:'Names like "tcs-hiring-portal-india-apply.com" are a common trick to look official.',tip:'Type the company\'s known website into your browser yourself and look for the job there.',find:c=>c.urls.filter(u=>u.host.split('-').length>3||u.host.split('.').length>4).map(u=>u.raw)},
+// Reputation
+{cat:'rep',w:25,sev:'r',title:'Domain imitates a well-known company',why:'The address contains a famous brand name but is not that brand\'s real domain.',tip:'Check the company\'s official site directly. Real careers pages sit on the company\'s own domain.',find:c=>c.urls.filter(u=>Object.keys(BRANDS).some(b=>u.host.includes(b)&&!BRANDS[b].includes(u.root)&&!GENUINE.includes(u.root))).map(u=>u.raw)},
+{cat:'rep',w:12,sev:'w',title:'Domain ending is often used for throwaway sites',why:'Endings such as .xyz, .top, .click or .site are cheap, so they are over-represented in scam campaigns. Not proof by itself.',tip:'Look for the same job on the company\'s official website or LinkedIn page.',find:c=>c.urls.filter(u=>BADTLD.includes(u.host.split('.').pop())).map(u=>u.raw)},
+{cat:'rep',w:8,sev:'w',title:'Applications collected through a free form or free-hosted page',why:'Established companies rarely collect applications through generic forms or free website builders.',tip:'Confirm the form link is listed on the company\'s official careers page.',find:c=>c.urls.filter(u=>FREEHOST.some(f=>u.host===f||u.host.endsWith('.'+f))||(u.host==='docs.google.com'&&u.path.includes('forms'))).map(u=>u.raw)},
+// Company
+{cat:'co',w:15,sev:'w',title:'Recruiter uses a free email address',why:'Genuine recruiters usually write from a company domain (name@company.com), not Gmail or Yahoo.',tip:'Look up the recruiter on LinkedIn and email the company\'s official HR address to confirm.',find:c=>c.emails.filter(d=>FREE.includes(d))},
+{cat:'co',w:25,sev:'r',title:'Email domain imitates a known company',why:'The sender\'s domain contains a famous brand but is not that company\'s real domain.',tip:'Do not reply. Contact the company through its official website.',find:c=>c.emails.filter(d=>Object.keys(BRANDS).some(b=>d.includes(b)&&!GENUINE.includes(rootOf(d))))},
+{cat:'co',w:10,sev:'w',title:'Company is described vaguely, with no name',why:'Phrases like "reputed MNC" avoid giving you something to verify.',tip:'Ask for the exact company name, address and website before sharing anything.',find:rx(/\b(reputed|leading|top|well[- ]known|renowned|multinational)\s+(mnc|company|firm|organi[sz]ation)\b/i)},
+{cat:'co',w:18,sev:'r',title:'Offer is made without a proper selection process',why:'Real internships involve resumes, tests or interviews. "Direct selection" is a hook to rush you.',tip:'Be sceptical of offers you did not apply for or earn through an interview.',find:rx(/(without|no)\s+(an\s+)?interview|direct\s+(selection|joining)|instant\s+(joining|offer|selection)|you\s+(are|have been)\s+(shortlisted|selected)\s+(directly|already)?/i)},
+// Payment
+{cat:'pay',w:45,sev:'r',title:'You are asked to pay money',why:'Legitimate employers never charge for registration, training, kits, security deposits or interviews. This is the most common internship scam.',tip:'Do not pay anything. If you already did, contact your bank immediately and report it at cybercrime.gov.in or call 1930.',find:rx(/(registration|training|security|processing|verification|onboarding|joining|certificate|kit|laptop|interview|admin)\s+(fee|fees|charges?|deposit|amount)|refundable|pay\s+(rs\.?|inr|₹|\$)?\s*\d[\d,]*|send\s+(rs\.?|₹)?\s*\d[\d,]+|deposit\s+(of\s+)?(rs\.?|₹)\s*\d+/i)},
+{cat:'pay',w:20,sev:'w',title:'Payment through UPI, gift cards or crypto is mentioned',why:'These methods are hard to reverse, which is why scammers prefer them.',tip:'Never send money through UPI, gift cards or crypto for a job.',find:rx(/gift\s*cards?|bitcoin|crypto(currency)?|usdt|upi\s*(id|payment)|google\s*pay|phonepe/i)},
+{cat:'pay',w:25,sev:'r',title:'Sensitive personal or banking details are requested',why:'OTPs, bank details, Aadhaar or PAN numbers should never be needed before a verified offer letter.',tip:'Share ID documents only after you have independently verified the company, and never share an OTP.',find:rx(/\botp\b|aadhaar|aadhar|\bpan\s*(card|number)\b|passport|bank\s+(account|details)|\bcvv\b|card\s+number/i)},
+// Patterns
+{cat:'pat',w:10,sev:'w',title:'Pressure to act fast',why:'Urgency stops you from checking facts. Real recruiters give you time.',tip:'Take at least a day. Genuine offers do not disappear in hours.',find:rx(/limited\s+(seats|slots|vacancies)|hurry|apply\s+(now|today|immediately)|today\s+only|last\s+chance|within\s+\d+\s+hours?|urgent(ly)?\s+(hiring|required)/i)},
+{cat:'pat',w:20,sev:'r',title:'Pay promised is unrealistic for the work',why:'Earning thousands per day for simple tasks, or from home with no skills, is not how real jobs pay.',tip:'Compare the pay with similar roles on Glassdoor or LinkedIn.',find:rx(/(earn|salary|stipend|income|get)[^.\n]{0,40}(₹|rs\.?|inr|\$)\s?\d[\d,]*\s*(\/|per|a)?\s*(day|daily|week|weekly|hour|hr)/i)},
+{cat:'pat',w:12,sev:'w',title:'"Easy money" task-based work',why:'Liking posts, rating products or copy-paste work are classic task scams that later ask you to deposit money.',tip:'Skip any job that pays per tiny task.',find:rx(/copy[- ]?paste|typing\s+job|like\s+(and\s+)?(subscribe|follow)|rate\s+(products|videos)|simple\s+tasks?/i)},
+{cat:'pat',w:15,sev:'w',title:'Guaranteed job or placement promise',why:'No honest company can guarantee selection.',tip:'Treat guarantees as a red flag.',find:rx(/guaranteed\s+(job|placement|selection|income)|100%\s+(placement|job|guarantee)/i)},
+{cat:'pat',w:12,sev:'w',title:'Moves you to WhatsApp or Telegram',why:'Scammers take conversations to private chats where they cannot be traced or reported.',tip:'Keep communication on official email or the job platform.',find:rx(/(whatsapp|telegram)[^.\n]{0,40}(contact|message|dm|join|group|number|chat)|(contact|message|dm|join)[^.\n]{0,30}(whatsapp|telegram)|t\.me\/\S*|wa\.me\/\S*/i)},
+{cat:'pat',w:8,sev:'w',title:'Asks you to forward the offer to others',why:'Chain forwarding spreads scams and is not part of real hiring.',tip:'Do not forward unverified offers.',find:rx(/(forward|share)\s+(this\s+)?(to|with|in)\s+(your\s+)?(friends|groups?|contacts)/i)}
+];
+const CATS=[['url','URL and domain analysis'],['rep','Website and domain reputation'],['co','Company information'],['pay','Payment and fee requests'],['pat','Suspicious patterns']];
+
+function store(){if(SB_ON)return REMOTE;try{return JSON.parse(localStorage.getItem('vf_reports')||'{}')}catch(e){return{}}}
+function save(o){try{localStorage.setItem('vf_reports',JSON.stringify(o))}catch(e){}}
+
+function analyse(text){
+  const c=parse(text);const hits=[];
+  for(const r of RULES){const m=r.find(c);if(m.length)hits.push({...r,m})}
+  // good signs
+  const good=[];
+  if(c.urls.some(u=>GENUINE.includes(u.root)&&!hits.some(h=>h.cat==='rep'&&h.m.includes(u.raw))))good.push('A link points to a well-known company\'s real domain.');
+  if(/no\s+(fee|fees|charges?)|free\s+of\s+cost/i.test(text))good.push('The message says there are no fees.');
+  if(/interview|assessment|hr\s+round|aptitude/i.test(text)&&!hits.some(h=>h.title.startsWith('Offer is made')))good.push('A normal selection process (interview or test) is mentioned.');
+  if(c.emails.some(d=>!FREE.includes(d))&&!hits.some(h=>h.cat==='co'&&h.sev==='r'))good.push('The contact email uses a company domain.');
+  // reports
+  const rep=store();const repHits=[];
+  for(const u of c.urls){const r=rep[u.root];if(r&&r.scam)repHits.push({root:u.root,n:r.scam})}
+  let score=hits.reduce((s,h)=>s+h.w,0)+Math.min(30,repHits.reduce((s,r)=>s+r.n*15,0))-Math.min(10,good.length*4);
+  score=Math.max(0,Math.min(100,score));
+  return{c,hits,good,rep,repHits,score};
+}
+const level=s=>s<=25?{t:'Likely Genuine',c:'--low',b:'--lowbg'}:s<=55?{t:'Verify Independently',c:'--mid',b:'--midbg'}:{t:'High Risk',c:'--high',b:'--highbg'};
+
+function annotate(text,hits){
+  const spans=[];
+  for(const h of hits)for(const s of h.m){
+    const low=text.toLowerCase(),t=s.toLowerCase();let i=0;
+    while((i=low.indexOf(t,i))>-1){spans.push([i,i+t.length,h.sev]);i+=t.length}
+  }
+  spans.sort((a,b)=>a[0]-b[0]||b[1]-a[1]);
+  let out='',pos=0;
+  for(const [a,b,sev] of spans){if(a<pos)continue;out+=esc(text.slice(pos,a))+'<mark class="'+sev+'">'+esc(text.slice(a,b))+'</mark>';pos=b}
+  return out+esc(text.slice(pos));
+}
+
+function render(text){
+  const A=analyse(text);const L=level(A.score);
+  const top=[...A.hits].sort((a,b)=>b.w-a.w).slice(0,3);
+  let h='';
+  h+=`<div class="verdict" style="--c:var(${L.c});--cb:var(${L.b})"><h2>${A.score}% — ${L.t.toUpperCase()}</h2>
+  <div class="meter"><i></i><i></i><i></i><i></i><span class="pin" style="left:${A.score}%"></span></div>
+  <div class="scale"><span>0% Likely Genuine</span><span>Risk score: ${A.score}%</span><span>100% High Risk</span></div>`;
+  h+=top.length?`<p style="margin:14px 0 0"><b>Why was this flagged?</b></p><ul>${top.map(t=>`<li>${esc(t.title)}</li>`).join('')}</ul>`:`<p style="margin:14px 0 0">None of our checks found a common scam pattern. That is not a guarantee. Still verify the company independently.</p>`;
+  if(A.hits.some(x=>x.cat==='pay'))h+='<div class="row"><button class="ghost" data-open="paid">Already paid or shared details? See what to do now</button></div>';
+  h+='</div>';
+  if(A.hits.length){h+=`<section class="blk"><h3>Your message, marked up</h3><div class="msg">${annotate(text,A.hits)}</div><p class="hint">Red = strong warning sign. Amber = worth checking.</p></section>`}
+  h+='<section class="blk"><h3>What we checked</h3>';
+  for(const [k,name] of CATS){
+    const hs=A.hits.filter(x=>x.cat===k);
+    const st=hs.some(x=>x.sev==='r')?['r','Warning']:hs.length?['w','Check this']:['ok','Nothing unusual'];
+    h+=`<div class="cat"><header><h4>${name}</h4><span class="tag ${st[0]}">${st[1]}</span></header>`;
+    if(!hs.length)h+=`<p class="none">${k==='url'&&!A.c.urls.length?'No link was found in the text.':'Nothing suspicious detected in this area.'}</p>`;
+    for(const x of hs)h+=`<div class="find ${x.sev==='r'?'r':''}"><b>${esc(x.title)}</b><span>${esc(x.why)}</span><br>${x.m.slice(0,3).map(s=>`<code>${esc(s)}</code>`).join(' ')}</div>`;
+    h+='</div>';
+  }
+  // reports
+  h+=`<div class="cat"><header><h4>User feedback and reports</h4><span class="tag ${A.repHits.length?'r':'ok'}">${A.repHits.length?'Reported':'No reports'}</span></header>`;
+  if(A.repHits.length)for(const r of A.repHits)h+=`<div class="find r"><b>${esc(r.root)} was reported as a scam ${r.n} time${r.n>1?'s':''}</b><span>Reports like this raise the risk score.</span></div>`;
+  else h+=`<p class="none">${A.c.urls.length?(SB_ON?'No student reports for this domain yet.':'No reports for this domain on this device. Connect Supabase to share reports between students.'):'Add a link to look up reports.'}</p>`;
+  if(A.c.urls.length){const r=A.c.urls[0].root;h+=`<div class="row"><button class="ghost" data-rep="scam" data-d="${esc(r)}">Report ${esc(r)} as a scam</button><button class="ghost" data-rep="ok" data-d="${esc(r)}">Mark as legitimate</button></div>`}
+  h+='</div></section>';
+  // recs
+  const tips=[...new Set(A.hits.sort((a,b)=>b.w-a.w).map(x=>x.tip))];
+  const base=['Search the company name plus "scam" or "reviews".','Find the role on the company\'s official careers page or verified LinkedIn page.','Never pay, share OTPs, or send ID documents before verifying.'];
+  h+=`<section class="blk"><h3>What should you do?</h3><ol class="steps">${[...tips,...base].slice(0,7).map(t=>`<li>${esc(t)}</li>`).join('')}</ol></section>`;
+  if(A.good.length)h+=`<section class="blk"><h3>Good signs</h3><ul class="steps good">${A.good.map(g=>`<li>${esc(g)}</li>`).join('')}</ul></section>`;
+  h+=`<p class="note">Scam Shield is a first-pass risk assessment, not a verdict. It looks for known warning patterns in the text and links you paste. It does not visit sites or check live databases, so a low score does not prove an offer is real. If you lost money, call 1930 or report at cybercrime.gov.in.</p>`;
+  document.getElementById('vcSite').value=A.c.urls[0]?A.c.urls[0].host:'';document.getElementById('vcMail').value=A.c.emails[0]||'';
+  const out=document.getElementById('out');out.innerHTML=h;out.scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+const inp=document.getElementById('in');
+document.getElementById('go').onclick=()=>{const t=inp.value.trim();if(!t){document.getElementById('out').innerHTML='<p class="none">Paste a listing or link first, then press Scan Listing.</p>';return}document.getElementById('demo').textContent='';run(t)};
+const DEMOMSG='Demo: this is a synthetic example listing, not a scan of a real posting.';
+document.getElementById('s1').onclick=()=>{document.getElementById('demo').textContent=DEMOMSG;inp.value='URGENT HIRING!! Reputed MNC offering work from home internship. Earn Rs 5000 per day, no interview, direct selection. Pay Rs 1500 refundable registration fee and send your Aadhaar and bank details. Limited seats, apply now: http://tcs-careers-hiring.xyz/apply or contact hr.tcsjobs@gmail.com. Join our Telegram group for details.';run(inp.value)};
+document.getElementById('s3').onclick=()=>{document.getElementById('demo').textContent=DEMOMSG;inp.value='Junior Content Associate at BrightPath Careers (Pune). Rs 30,000 per month, remote. Selected candidates must purchase a mandatory onboarding kit of Rs 3,999 from our partner vendor. Interview will be held on Telegram. Reply from our HR mail: brightpath.hr@gmail.com';run(inp.value)};
+document.getElementById('s2').onclick=()=>{document.getElementById('demo').textContent=DEMOMSG;inp.value='Hi Riya, thanks for applying for the Software Engineering Intern role. Please complete the online assessment at https://www.infosys.com/careers and we will schedule an HR round next week. There are no fees at any stage of our hiring process.';run(inp.value)};
+document.getElementById('out').addEventListener('click',async e=>{const b=e.target.closest('[data-rep]');if(!b)return;b.disabled=true;const ok=await sendReport(b.dataset.d,b.dataset.rep);b.textContent=ok?'Thanks, report saved':'Could not save report, try again';if(ok)setTimeout(()=>run(inp.value.trim()),600);else b.disabled=false});
+
+document.addEventListener('click',e=>{const b=e.target.closest('[data-open]');if(!b)return;const d=document.getElementById(b.dataset.open);d.open=true;d.scrollIntoView({behavior:'smooth',block:'start'})});
+document.getElementById('paidgo').onclick=()=>{
+  const on=i=>document.getElementById(i).checked;
+  const S=[];
+  S.push(['Stop. Do not send any more money or details, even if someone offers to "refund" or "recover" your payment. That is a second scam.',1]);
+  if(on('p1')){S.push(['Call your bank or payment app helpline now and ask them to block or dispute the transaction. The first hours matter most.',1]);S.push(['Report at cybercrime.gov.in or call 1930 (National Cyber Crime Helpline). Keep the transaction ID and the scammer\'s number or account handy.',1])}
+  if(on('p2')){S.push(['Call your bank to block the card or net banking access. Then change your net banking and UPI PINs.',1]);S.push(['Check your recent statements and SMS alerts for transactions you did not make.',0])}
+  if(on('p3')){S.push(['Lock your Aadhaar biometrics on myaadhaar.uidai.gov.in.',0]);S.push(['Check your credit report (for example on CIBIL) for loans or cards you did not apply for. Misused PAN or Aadhaar often shows up there.',0]);S.push(['If you shared a passport, note it in your cybercrime complaint.',0])}
+  if(on('p4')){S.push(['Change the password on that account and on any other account that uses the same password. Turn on two-factor authentication.',1]);S.push(['Sign out of all devices from the account\'s security settings.',0])}
+  if(on('p5')){S.push(['Uninstall the app and stop the screen share. Disconnect from the internet if you are unsure.',1]);S.push(['Check your banking apps for unknown activity and run a security scan. If banking apps were open, call your bank.',1])}
+  if(S.length===1)S.push(['Tick at least one box above so we can give you specific steps.',0]);
+  S.push(['Save evidence: screenshots of chats, the offer, the link, payment receipts and phone numbers. Do not delete anything.',0]);
+  S.push(['Report the profile or post on the platform where it appeared (LinkedIn, WhatsApp, Telegram, Instagram) and warn friends and your college placement cell.',0]);
+  document.getElementById('paidout').innerHTML='<ol class="steps res">'+S.map(x=>'<li>'+(x[1]?'<b>'+esc(x[0])+'</b>':esc(x[0]))+'</li>').join('')+'</ol><p class="hint">Bold steps are the most time-sensitive.</p>';
+};
+document.getElementById('vcgo').onclick=()=>{
+  const name=document.getElementById('vcName').value.trim();
+  const site=document.getElementById('vcSite').value.trim().toLowerCase().replace(/^https?:\/\//,'').replace(/^www\./,'').split(/[\/?#]/)[0];
+  const mail=document.getElementById('vcMail').value.trim().toLowerCase().split('@').pop();
+  const o=[];const key=Object.keys(BRANDS).find(b=>name.toLowerCase().includes(b));
+  const sr=site?rootOf(site):'',mr=mail?rootOf(mail):'';
+  if(key){
+    const off=BRANDS[key];o.push(['ok','Official domain for '+key+': '+off.join(', ')]);
+    if(site)o.push(off.includes(sr)?['ok','The website matches the official domain.']:['r','The website ('+sr+') is NOT an official '+key+' domain.']);
+    if(mail)o.push(off.includes(mr)?['ok','The email domain matches the official domain.']:['r','The email domain ('+mr+') is NOT an official '+key+' domain.']);
+  }else if(name){o.push(['w','This company is not in our small list of known brands, so we cannot confirm its official domain. Use the links below.'])}
+  else o.push(['w','Enter the company name to compare against known official domains.']);
+  if(mail&&FREE.includes(mr))o.push(['w','The recruiter uses a free email service ('+mr+'). Real recruiters usually use a company address.']);
+  if(site&&mail&&!FREE.includes(mr)&&sr!==mr)o.push(['w','The website ('+sr+') and the email ('+mr+') belong to different domains.']);
+  if(site&&BADTLD.includes(site.split('.').pop()))o.push(['w','The website ending is often used for throwaway sites.']);
+  const q=encodeURIComponent(name||'company');
+  const links=name?`<p><b>Check it yourself</b></p>
+  <a class="lk" target="_blank" rel="noopener noreferrer" href="https://www.linkedin.com/search/results/companies/?keywords=${q}">Company page on LinkedIn</a>
+  <a class="lk" target="_blank" rel="noopener noreferrer" href="https://www.google.com/search?q=${q}+internship+scam+OR+fraud">Search for scam reports</a>
+  <a class="lk" target="_blank" rel="noopener noreferrer" href="https://www.google.com/search?q=${q}+reviews+ambitionbox+OR+glassdoor">Employee reviews</a>
+  <a class="lk" target="_blank" rel="noopener noreferrer" href="https://www.mca.gov.in">Check registration on MCA</a>
+  <p class="hint">Then open the company\'s own homepage and find the role under Careers. If it is not listed there, treat the offer as unverified.</p>`:'';
+  document.getElementById('vcout').innerHTML='<div class="res">'+o.map(x=>'<div class="find '+(x[0]==='r'?'r':'')+'" style="border-color:var(--'+(x[0]==='ok'?'low':x[0]==='r'?'high':'mid')+')"><span style="color:var(--ink)">'+esc(x[1])+'</span></div>').join('')+'</div>'+links;
+};
+
+const API_URL='/api/analyze';
+function sevCls(x){return x==='high'?'r':x==='medium'?'w':''}
+function renderDeep(d){
+  const ai=d.ai||{};let h='';
+  if(ai.error)h+=`<div class="cat"><p class="none">AI explanation unavailable: ${esc(ai.error)}. The scan results below still apply.</p></div>`;
+  else{
+    const sc=Math.max(0,Math.min(100,+ai.score||0)),L=level(sc);
+    h+=`<div class="verdict" style="--c:var(${L.c});--cb:var(${L.b})"><h2>Deep scan: ${sc}% — ${L.t.toUpperCase()}</h2>
+    <div class="meter"><i></i><i></i><i></i><i></i><span class="pin" style="left:${sc}%"></span></div>
+    <div class="scale"><span>0% Likely Genuine</span><span>Risk score: ${sc}%</span><span>100% High Risk</span></div>
+    <p data-notr>${esc(ai.summary||'')}</p></div>`;
+    if(d.integrations){
+      const sp=d.integrations.serpapi||{}, sb=d.integrations.safe_browsing||{};
+      h+=`<section class="blk"><h3>Verification sources</h3><div class="res">`+
+        `<div class="find"><b>SerpApi</b><span>${sp.enabled?`Google Jobs: ${sp.jobs_found||0} · Company search: ${sp.company_results||0} · Maps: ${sp.map_results||0}${sp.job_listing_checked?' · Job listing checked':''}`:'Not configured on server'}</span></div>`+
+        `<div class="find"><b>Google Safe Browsing</b><span>${sb.enabled?`${sb.matches||0} threat match${(sb.matches||0)===1?'':'es'} found`:'Not configured on server'}</span></div>`+
+        `</div></section>`;
+    }
+    if((ai.reasons||[]).length){h+='<section class="blk"><h3>Why, based on what we found</h3>';
+      for(const r of ai.reasons)h+=`<div data-notr class="find ${sevCls(r.severity)}"><b>${esc(r.title||'')}</b><span>${esc(r.explanation||'')}</span>${r.evidence?`<br><code>${esc(r.evidence)}</code>`:''}</div>`;
+      h+='</section>'}
+    if((ai.recommendations||[]).length)h+=`<section class="blk"><h3>What to do</h3><ol class="steps" data-notr>${ai.recommendations.map(x=>`<li>${esc(x)}</li>`).join('')}</ol></section>`;
+  }
+  h+='<section class="blk"><h3>Links we opened</h3>';
+  if(!(d.urls||[]).length)h+='<p class="none">No links were found in the text, so there was nothing to open.</p>';
+  for(const u of d.urls||[]){
+    const p=u.page,bad=u.error||(p&&p.forms.some(f=>f.fields.some(x=>x.sensitive)))||(u.age&&u.age.days<30);
+    const warn=u.hops.length>2||(p&&(p.forms.length||p.payments.length||p.metaRefresh||p.jsRedirects.length));
+    const st=bad?['r','Warning']:warn?['w','Check this']:['ok','Nothing unusual'];
+    h+=`<div class="cat"><header><h4 style="word-break:break-all">${esc(u.input)}</h4><span class="tag ${st[0]}">${st[1]}</span></header>`;
+    h+=`<div class="chain"><b>Redirect path:</b> ${u.hops.map(x=>`<code>${esc(x.url)}</code> (${x.status||esc(x.note||'failed')})`).join(' → ')}</div>`;
+    if(u.error)h+=`<p class="mini">Could not fully open this link: ${esc(u.error)}.</p>`;
+    if(u.age)h+=`<p class="mini">Domain registered ${esc(u.age.registered)} (${u.age.days} days ago).${u.age.days<90?' <b>Very new domains are a common scam sign.</b>':''}</p>`;
+    if(p){
+      if(p.title)h+=`<p class="mini">Page title: ${esc(p.title)}</p>`;
+      if(p.metaRefresh)h+=`<p class="mini">Page auto-redirects to <code>${esc(p.metaRefresh)}</code></p>`;
+      if(p.jsRedirects.length)h+=`<p class="mini">Script redirects to: ${p.jsRedirects.map(x=>`<code>${esc(x)}</code>`).join(' ')}</p>`;
+      for(const f of p.forms)h+=`<div class="find ${f.fields.some(x=>x.sensitive)?'r':''}"><b>Form sends data to <code>${esc(f.action)}</code></b><span>Asks for:</span><br>${f.fields.map(x=>`<span class="fld ${x.sensitive?'s':''}">${esc(x.label||x.name||x.type)}</span>`).join('')||'<span>(no visible fields)</span>'}</div>`;
+      if(p.payments.length)h+=`<p class="mini">Payment wording on page: ${p.payments.map(x=>`<code>${esc(x)}</code>`).join(' ')}</p>`;
+      if(p.iframes.length)h+=`<p class="mini">Embedded content from: ${p.iframes.map(x=>`<code>${esc(x)}</code>`).join(' ')}</p>`;
+      if(p.outbound.length)h+=`<p class="mini">Links out to: ${p.outbound.slice(0,5).map(x=>`<code>${esc(x)}</code>`).join(' ')}</p>`;
+    }
+    h+='</div>';
+  }
+  if(d.skipped)h+=`<p class="hint">${d.skipped} more link(s) were not opened (limit is 5 per scan).</p>`;
+  h+='<p class="hint">We read pages without running their scripts and never submit forms. Pages that build forms or redirects with JavaScript may show less than a browser would.</p></section>';
+  return h;
+}
+document.getElementById('deepgo').onclick=async()=>{
+  const t=inp.value.trim(),box=document.getElementById('deep');
+  if(!t&&!IMG){box.innerHTML='<p class="none">Paste a job post or link, or upload a poster, first.</p>';return}
+  if(t)await run(t);
+  box.innerHTML='<h2 class="tools-h" style="margin-top:34px">Deep scan</h2><p class="spin">Opening links, following redirects and reading forms. This can take 10 to 20 seconds…</p>';
+  box.scrollIntoView({behavior:'smooth',block:'start'});
+  const b=document.getElementById('deepgo');b.disabled=true;
+  try{
+    const r=await fetch(API_URL,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({text:t,image:IMG,lang:LANG})});
+    const d=await r.json();
+    if(r.ok&&d.extracted){inp.value=(t+'\n'+d.extracted).trim();await run(inp.value);box.scrollIntoView({behavior:'smooth',block:'start'})}
+    box.innerHTML=r.ok?'<h2 class="tools-h" style="margin-top:34px">Deep scan</h2>'+(d.extracted?'<section class="blk"><h3>Text we read from the poster</h3><div class="msg">'+esc(d.extracted)+'</div></section>':'')+renderDeep(d):`<p class="none">${esc(d.error||'Deep scan failed.')}</p>`;
+  }catch(e){box.innerHTML='<p class="none">Deep scan needs the server part of this site. It is not available here, so only the quick check ran.</p>'}
+  b.disabled=false;
+};
+
+let IMG=null;
+document.getElementById('img').onchange=async e=>{
+  const f=e.target.files[0],note=document.getElementById('imgnote');IMG=null;note.textContent='';
+  if(!f)return;
+  try{
+    const bmp=await createImageBitmap(f);
+    const sc=Math.min(1,1400/Math.max(bmp.width,bmp.height)),c=document.createElement('canvas');
+    c.width=Math.round(bmp.width*sc);c.height=Math.round(bmp.height*sc);
+    c.getContext('2d').drawImage(bmp,0,0,c.width,c.height);
+    IMG={media_type:'image/jpeg',data:c.toDataURL('image/jpeg',.85).split(',')[1]};
+  }catch(err){
+    if(['image/jpeg','image/png','image/webp'].includes(f.type)&&f.size<3500000){
+      try{
+        const data=await new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(String(r.result).split(',')[1]);r.onerror=rej;r.readAsDataURL(f)});
+        IMG={media_type:f.type,data};
+      }catch(e2){}
+    }
+  }
+  note.textContent=IMG?f.name+' ready. Press Deep scan.':'This image could not be used (HEIC photos and very large files often fail). Upload a PNG or JPG screenshot, or paste the text instead.';
+};
+
+let LAST={text:'',ai:null},HIST=[];
+const _run=run;run=async function(t){LAST.text=t;return _run(t)};
+const _rd=renderDeep;renderDeep=function(d){LAST.ai=d.ai||null;return _rd(d)};
+function chatCtx(){
+  let c='';if(LAST.text)c+='Job post text:\n'+LAST.text.slice(0,2000);
+  if(LAST.ai&&!LAST.ai.error){c+='\n\nDeep scan result: '+(LAST.ai.risk_level||'')+' ('+(LAST.ai.score??'')+'/100). '+(LAST.ai.summary||'');
+    c+='\nReasons: '+(LAST.ai.reasons||[]).map(r=>r.title).join('; ')}
+  return c;
+}
+const mbox=document.getElementById('msgs'),cin=document.getElementById('chatin');
+function addMsg(t,who){const d=document.createElement('div');d.className='m '+who;d.textContent=t;mbox.appendChild(d);mbox.scrollTop=mbox.scrollHeight;return d}
+function openChat(){
+  document.getElementById('chat').classList.add('open');document.getElementById('chatbtn').style.display='none';
+  if(!mbox.children.length){
+    addMsg('Hi! Ask me anything about a job or internship offer, or what to do if you think you have been scammed. If you have run a check, I can explain the result too.','b');
+    const c=document.createElement('div');c.className='chips';
+    for(const q of ['Is a refundable fee ever normal?','I already paid. What now?','How do I verify a company?','Explain my result'])
+      {const b=document.createElement('button');b.className='ghost';b.type='button';b.textContent=q;b.onclick=()=>{c.remove();send(q)};c.appendChild(b)}
+    mbox.appendChild(c);
+  }
+  cin.focus();
+}
+document.getElementById('chatbtn').onclick=openChat;
+document.getElementById('chatx').onclick=()=>{document.getElementById('chat').classList.remove('open');document.getElementById('chatbtn').style.display=''};
+async function send(q){
+  q=q.trim();if(!q)return;
+  addMsg(q,'u');HIST.push({role:'user',content:q});cin.value='';
+  const wait=addMsg('Thinking…','b'),btn=document.getElementById('chatsend');btn.disabled=true;
+  try{
+    const r=await fetch('/api/chat',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({messages:HIST.slice(-10),context:chatCtx(),lang:LANG})});
+    const d=await r.json();
+    if(r.ok){wait.setAttribute('data-notr','');wait.textContent=d.reply;HIST.push({role:'assistant',content:d.reply})}
+    else{wait.textContent=d.error||'Something went wrong. Try again.';HIST.pop()}
+  }catch(e){wait.textContent='The chat needs the server part of this site, which is not available here.';HIST.pop()}
+  btn.disabled=false;mbox.scrollTop=mbox.scrollHeight;
+}
+document.getElementById('chatform').onsubmit=e=>{e.preventDefault();send(cin.value)};
+
+/* ---------- Language support ---------- */
+let LANG='en',LTOKEN=0,CACHE={};
+const TR_ORIG=new WeakMap(),DONE=new WeakSet(),PH_ORIG=new WeakMap();let TRACK=[],PHTRACK=[];
+function loadCache(l){try{CACHE=JSON.parse(localStorage.getItem('vf_tr_'+l)||'{}')}catch(e){CACHE={}}}
+function saveCache(l){try{localStorage.setItem('vf_tr_'+l,JSON.stringify(CACHE))}catch(e){}}
+function collect(root){
+  const items=[];
+  const w=document.createTreeWalker(root,NodeFilter.SHOW_TEXT,{acceptNode:n=>{
+    const t=n.nodeValue.trim();
+    if(t.length<2||!/[A-Za-z]/.test(t)||DONE.has(n))return NodeFilter.FILTER_REJECT;
+    const p=n.parentElement;
+    return(!p||p.closest('script,style,code,mark,textarea,select,option,[data-notr],.msg'))?NodeFilter.FILTER_REJECT:NodeFilter.FILTER_ACCEPT}});
+  let n;while(n=w.nextNode())items.push({node:n,text:n.nodeValue.trim()});
+  root.querySelectorAll('[placeholder]').forEach(el=>{if(!PH_ORIG.has(el)&&!el.closest('[data-notr]'))items.push({el,text:el.getAttribute('placeholder')})});
+  return items;
+}
+async function translateRoot(root){
+  if(LANG==='en')return;
+  const my=LTOKEN,items=collect(root);if(!items.length)return;
+  const need=[...new Set(items.map(i=>i.text))].filter(t=>!(t in CACHE));
+  let err='';
+  for(let i=0;i<need.length;i+=60){
+    const chunk=need.slice(i,i+60);
+    try{
+      const r=await fetch('/api/translate',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({lang:LANG,texts:chunk})});
+      let d=null;try{d=await r.json()}catch(e){}
+      if(r.ok&&d&&Array.isArray(d.texts))chunk.forEach((t,j)=>{if(d.texts[j])CACHE[t]=d.texts[j]});
+      else err=(d&&d.error)||(r.status===405||r.status===404?'the site is running without its serverless functions. Deploy with Git or run netlify dev (drag-and-drop and plain file servers do not run functions).':'the server answered '+r.status+'.');
+    }catch(e){err='cannot reach the translation server. Language change only works on the deployed Netlify site.'}
+  }
+  if(my!==LTOKEN)return;
+  saveCache(LANG);
+  for(const it of items){
+    const tr=CACHE[it.text];if(!tr)continue;
+    if(it.node){
+      if(!it.node.isConnected)continue;
+      const v=it.node.nodeValue;TR_ORIG.set(it.node,v);TRACK.push(it.node);DONE.add(it.node);
+      it.node.nodeValue=v.match(/^\s*/)[0]+tr+v.match(/\s*$/)[0];
+    }else{PH_ORIG.set(it.el,it.text);PHTRACK.push(it.el);it.el.setAttribute('placeholder',tr)}
+  }
+  const ls=document.getElementById('lstat');ls.textContent=err?'Translation failed: '+err:'';ls.style.color=err?'var(--high)':'';
+}
+function restoreAll(){
+  for(const n of TRACK){if(n.isConnected&&TR_ORIG.has(n))n.nodeValue=TR_ORIG.get(n);DONE.delete(n)}
+  for(const el of PHTRACK){if(el.isConnected&&PH_ORIG.has(el))el.setAttribute('placeholder',PH_ORIG.get(el));PH_ORIG.delete(el)}
+  TRACK=[];PHTRACK=[];
+}
+async function setLang(l){
+  LTOKEN++;restoreAll();LANG=l;document.documentElement.lang=l==='hinglish'?'hi-Latn':l;
+  try{localStorage.setItem('vf_lang',l)}catch(e){}
+  const st=document.getElementById('lstat');st.style.color='';
+  if(l==='en'){st.textContent='';return}
+  loadCache(l);st.textContent='Translating…';
+  await translateRoot(document.body);
+  if(st.textContent==='Translating…')st.textContent='';
+}
+document.getElementById('lang').onchange=e=>setLang(e.target.value);
+let ltimer;
+const obs=new MutationObserver(()=>{if(LANG==='en')return;clearTimeout(ltimer);ltimer=setTimeout(()=>translateRoot(document.body),80)});
+for(const id of ['out','deep','msgs','vcout','paidout'])obs.observe(document.getElementById(id),{childList:true,subtree:true});
+try{const sv=localStorage.getItem('vf_lang');if(sv&&sv!=='en'){document.getElementById('lang').value=sv;setLang(sv)}}catch(e){}
+
+/* Basic Hindi and Hinglish keyword rules for the quick check */
+RULES.push(
+{cat:'pay',w:45,sev:'r',title:'You are asked to pay money',why:'Legitimate employers never charge for registration, training, kits or interviews. This is the most common internship scam.',tip:'Do not pay anything. If you already did, contact your bank immediately and report it at cybercrime.gov.in or call 1930.',find:rx(/शुल्क|फीस|जमा\s*कर(?:ें|o|ना|वा)|पैसे\s*(?:भेज|जमा|दे)|jama\s+kar(?:o|na|wa)|paise\s+(?:bhej|jama|de)|fees?\s+(?:bhej|jama|de|lagega|dena)/i)},
+{cat:'pay',w:25,sev:'r',title:'Sensitive personal or banking details are requested',why:'OTPs, bank details, Aadhaar or PAN numbers should never be needed before a verified offer letter.',tip:'Share ID documents only after you have independently verified the company, and never share an OTP.',find:rx(/ओटीपी|आधार|पैन\s*कार्ड|बैंक\s*(?:खाता|डिटेल)|otp\s+(?:bhej|share|batao)/i)}
+);
+</script>
+</body>
+</html>
